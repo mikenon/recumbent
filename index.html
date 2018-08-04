@@ -1,1 +1,163 @@
-<h2>Hello</h2>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../../../favicon.ico">
+
+    <title>Workout</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container">
+    <div class="row">
+
+        <div class="col-md-4 order-md-2 mb-4">
+            <h4 class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Data Input</span>
+                <span class="badge badge-secondary badge-pill" id="inputCnt">0</span>
+            </h4>
+            <ul class="list-group mb-3" id="inputList">
+
+                <form class="card p-2" id="inputListForm">
+                    <div class="form-group">
+                        <label for="inputMinute">Minute</label>
+                        <input type="number" class="form-control" id="inputMinute" name="minute" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputDistance">Distance</label>
+                        <input type="number" class="form-control" id="inputDistance" name="distance" placeholder="7.64">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputCalories">Distance</label>
+                        <input type="number" class="form-control" id="inputCalories" name="calories" placeholder="250">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="inputBtn">Add Record</button>
+                </form>
+                <button class="btn btn-secondary" id="showdata">Show</button>
+            </ul>
+        </div>
+
+        <div class="col-md-8 order-md-1">
+            <canvas id="workoutChart" width="400" height="400"></canvas>
+            <div id="dataGoesHere"></div>
+        </div>
+    </div>
+</div>
+
+<script id="templateListItem" type="x-tmpl-mustache">
+        <li class="list-group-item d-flex justify-content-between {{ bg }}">
+            <div>
+                <h6 class="my-0">Calories</h6>
+                <small class="text-muted">Minute: {{ minute }}, Distance: {{ distance }}</small>
+            </div>
+            <span class="text-muted">{{ calories }}</span>
+        </li>
+</script>
+
+
+<script id="showDataItem" type="x-tmpl-mustache">
+    <pre>
+    {{ data }}
+    </pre>
+</script>
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.bundle.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.js"></script>
+
+<script>
+    let listItemTemplate = undefined;
+    let listItemBgs = ['bg-light', 'lh-condensed'];
+    let listItemLast = 0;
+
+    function addInputListItem(minute, distance, calories) {
+        if (listItemTemplate === undefined) {
+            listItemTemplate = $('#templateListItem').html();
+            Mustache.parse(listItemTemplate);
+        }
+
+        var rendered = Mustache.render(listItemTemplate, {
+            distance: distance,
+            calories: calories,
+            minute: minute,
+            bg: listItemBgs[listItemLast]
+        });
+
+        $('#inputListForm').before(rendered);
+
+        listItemLast = listItemLast === 0 ? 1 : 0;
+    }
+    
+    function onUserEnterData(event) {
+        event.preventDefault();
+        console.log(event);
+
+        let previousData = localStorage.getItem('workout_log')
+        console.log('previousData', previousData);
+
+        if (previousData === undefined || previousData === null) {
+            previousData = []
+        } else {
+            previousData = JSON.parse(previousData)
+        }
+
+        console.log('previousData', previousData);
+
+        var inputs = $('#inputListForm :input');
+
+        var values = {};
+        inputs.each(function() {
+            if (this.name.length > 0) {
+                values[this.name] = $(this).val();
+            }
+        });
+        console.log(inputs);
+        console.log(values);
+        previousData.push(values);
+        localStorage.setItem('workout_log', JSON.stringify(previousData));
+    }
+
+    // Example starter JavaScript for disabling form submissions if there are invalid fields
+    (function () {
+        'use strict';
+
+        window.addEventListener('load', function () {
+
+
+            addInputListItem(1, 0.25, 7);
+            addInputListItem(2, 0.20, 6);
+            addInputListItem(4, 0.40, 12);
+
+            $( "#inputListForm" ).submit(onUserEnterData);
+            $( "#showdata" ).click(function() {
+                console.log("EHEREREERERER")
+
+                let template = $('#showDataItem').html();
+
+                var rendered = Mustache.render(template, {
+                    data: localStorage.getItem('workout_log'),
+                });
+
+                $('#dataGoesHere').html(rendered);
+
+               // $('.container').append($('pre').append(localStorage.getItem('workout_log')))
+            });
+        }, false);
+    })();
+</script>
+</body>
+</html>
