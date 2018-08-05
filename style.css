@@ -1,0 +1,36 @@
+.container {
+    padding-bottom: 45px;
+}
+
+#inputListItems {
+}
+
+#inputListItems li {
+    list-style-type: none;
+}
+
+#inputListItems i {
+    -webkit-transition: opacity .2s;
+    transition: opacity .2s;
+    opacity: 0;
+    display: block;
+    cursor: pointer;
+    color: #c00;
+    top: 0px;
+    right: 20px;
+    font-size: 35px;
+    position: absolute;
+}
+
+#inputListItems li:hover i {
+    opacity: 1;
+}
+
+.drag-handle {
+    margin-right: 10px;
+    /*font: bold 20px Sans-Serif;*/
+    color: #5F9EDF;
+    display: inline-block;
+    cursor: move;
+    cursor: -webkit-grabbing; /* overrides 'move' */
+}

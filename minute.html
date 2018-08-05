@@ -6,10 +6,11 @@
     <meta name="description" content="">
     <meta name="author" content="mikenon">
 
-    <title>Workout - Days</title>
+    <title>Workout - Minutes</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
     <link rel="stylesheet" href="/style.css">
+
 </head>
 
 <body class="bg-light">
@@ -25,12 +26,8 @@
             <ul class="list-group mb-3" id="inputListItems"></ul>
             <form class="card p-2" id="inputListForm">
                 <div class="form-group">
-                    <label for="inputDate">Date</label>
-                    <input type="date" class="form-control" id="inputDate" name="date">
-                </div>
-                <div class="form-group">
-                    <label for="inputMinutes">Minutes</label>
-                    <input type="number" class="form-control" id="inputMinutes" name="minutes" placeholder="30">
+                    <label for="inputMinute">Minute</label>
+                    <input type="number" class="form-control" id="inputMinute" name="minute" placeholder="30">
                 </div>
                 <div class="form-group">
                     <label for="inputDistance">Distance</label>
@@ -45,6 +42,7 @@
                     <input type="number" class="form-control" id="inputLevel" name="level" placeholder="11">
                 </div>
                 <button type="submit" class="btn btn-primary my-1" id="inputBtn">Add Record</button>
+                <button class="btn btn-secondary my-1" id="commitdata">Commit Last Record</button>
                 <button class="btn btn-danger my-1" id="removedata">Remove Records</button>
                 <button class="btn btn-success my-1" id="postdata">Upload Records</button>
                 <button class="btn btn-secondary my-1" id="showdata">Show Records</button>
@@ -72,11 +70,11 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="/">Day <span class="sr-only">(current)</span></a>
-            </li>
             <li class="nav-item">
-                <a class="nav-link" href="/minute.html">Minute</a>
+                <a class="nav-link" href="/">Day</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/minute.html">Minute <span class="sr-only">(current)</span></a>
             </li>
         </ul>
     </div>
@@ -86,10 +84,9 @@
     <li class="logItem" data-item-type="minute" data-minute="{{ minute }}">
         <div class="card {{ bg }}" style="padding: 0.25rem;">
             <div class="card-body" style="padding: 0.25rem;">
-                <h5 class="card-title"><span class="drag-handle">&#9776;</span> {{ datestr }}</h5>
+                <h5 class="card-title"><span class="drag-handle">&#9776;</span> Minute {{ minute }}</h5>
                 <i class="js-remove font-weight-bold">&times;</i>
-                <p class="small text-muted" style="margin: 0;">Calories: {{ calories }}, Distance: {{ distance }},
-                    Minutes: {{ minutes }}, Level: {{ level }}</p>
+                <p class="small text-muted" style="margin: 0;">Calories: {{ calories }}, Distance: {{ distance }}</p>
             </div>
         </div>
     </li>
@@ -100,6 +97,18 @@
         <div class="card {{ bg }}" style="padding: 0.25rem;">
             <div class="card-body" style="padding: 0.25rem;">
                 <h5 class="card-title text-light">Upload {{ status }}</h5>
+                <i class="js-remove font-weight-bold text-light">&times;</i>
+                <p class="small text-light" style="margin: 0;">Items: {{ count }}</p>
+            </div>
+        </div>
+    </li>
+</script>
+
+<script id="templateListItemCommit" type="text/template">
+    <li class="logItem" data-item-type="extra">
+        <div class="card bg-info" style="padding: 0.25rem;">
+            <div class="card-body" style="padding: 0.25rem;">
+                <h5 class="card-title text-light">Committed Data</h5>
                 <i class="js-remove font-weight-bold text-light">&times;</i>
                 <p class="small text-light" style="margin: 0;">Items: {{ count }}</p>
             </div>
@@ -129,7 +138,7 @@
     let chart_obj;
 
     function updateInputLog(persistedData) {
-        persistedData = persistedData === undefined ? getPersistedData(storageKeys.per_day) : persistedData;
+        persistedData = persistedData === undefined ? getPersistedData(storageKeys.per_minute) : persistedData;
         let listItemLast = 0;
         let template = $('#templateListItem').html();
 
@@ -153,9 +162,9 @@
                 let el = editableList.closest(evt.item);
                 let item_type = $(el).attr('data-item-type');
                 if (item_type === 'minute') {
-                    let persistedData = getPersistedData(storageKeys.per_day);
+                    let persistedData = getPersistedData(storageKeys.per_minute);
                     persistedData.splice(evt.newIndex, 0, persistedData.splice(evt.oldIndex, 1)[0]);
-                    setPersistedData(persistedData, storageKeys.per_day);
+                    setPersistedData(persistedData, storageKeys.per_minute);
                     updateInputLog();
                 }
             },
@@ -164,9 +173,9 @@
                 let item_type = $(el).attr('data-item-type');
                 if (item_type === 'minute') {
                     let minute = $(el).attr('data-minute');
-                    let persistedData = getPersistedData(storageKeys.per_day);
+                    let persistedData = getPersistedData(storageKeys.per_minute);
                     persistedData.splice(evt.oldIndex, 1);
-                    setPersistedData(persistedData, storageKeys.per_day);
+                    setPersistedData(persistedData, storageKeys.per_minute);
                     updateInputLog();
                 } else {
                     el.parentNode.removeChild(el);
@@ -180,7 +189,7 @@
             event.preventDefault();
         }
 
-        let persistedData = getPersistedData(storageKeys.per_day);
+        let persistedData = getPersistedData(storageKeys.per_minute);
         var rendered = Mustache.render($('#templateShowDataItem').html(), {data: JSON.stringify(persistedData, null, 2)});
 
         $('#dataGoesHere').html(rendered);
@@ -193,7 +202,7 @@
             event.preventDefault();
         }
 
-        let persistedData = getPersistedData(storageKeys.per_day);
+        let persistedData = getPersistedData(storageKeys.per_minute);
         let item = {count: persistedData.length};
 
         $.ajax({
@@ -202,7 +211,6 @@
             data: JSON.stringify(persistedData),
             contentType: "application/json",
             complete: (response, status) => {
-                console.log('complete', arguments);
                 let success = status === 'success';
                 item['status'] = success ? 'Success' : 'Failed';
                 item['bg'] = success ? 'bg-success' : 'bg-danger';
@@ -213,23 +221,47 @@
         return false;
     }
 
+    function commitPersistedData(event) {
+        if (event !== undefined) {
+            event.preventDefault();
+        }
+
+        let persistedDataDay = getPersistedData(storageKeys.per_day);
+        let persistedDataMinutes = getPersistedData(storageKeys.per_minute);
+
+        let last = persistedDataMinutes[persistedDataMinutes.length - 1];
+        console.log('last 1', last);
+        last['minutes'] = last.minute + 0;
+        delete last.minute;
+        console.log('last 2', last);
+        persistedDataDay.push(last);
+        setPersistedData(persistedDataDay, storageKeys.per_day);
+
+        let template = $('#templateListItemCommit').html();
+        let item = {count: persistedDataMinutes.length};
+
+        $('#inputListItems').append(Mustache.render(template, item));
+
+        return false;
+    }
+
     function onUserSubmitForm(event) {
         if (event !== undefined) {
             event.preventDefault();
         }
 
-        let persistedData = getPersistedData(storageKeys.per_day);
+        let persistedData = getPersistedData(storageKeys.per_minute);
 
         let values = {
-            minutes: parseInt($('#inputMinutes').val()),
+            date: new Date(),
+            minute: parseInt($('#inputMinute').val()),
             distance: parseFloat($('#inputDistance').val()),
             calories: parseFloat($('#inputCalories').val()),
-            date: moment($('#inputDate').val()).toDate(),
             level: parseInt($('#inputLevel').val()),
         };
 
         persistedData.push(values);
-        setPersistedData(persistedData, storageKeys.per_day);
+        setPersistedData(persistedData, storageKeys.per_minute);
 
         resetUserSubmitForm();
 
@@ -237,17 +269,14 @@
     }
 
     function resetUserSubmitForm() {
-        let persistedData = getPersistedData(storageKeys.per_day),
-            values = {minutes: 30, distance: 6.23, calories: 247, date: new Date(), level: 10};
+        let persistedData = getPersistedData(storageKeys.per_minute),
+            values = {minute: 1, distance: 0.23, calories: 7, level: 11};
 
         if (persistedData.length > 0) {
             values = persistedData[persistedData.length - 1];
-            values.date = new Date(values.date);
-            values.date.setDate(values.date.getDate() + 1)
         }
 
-        $('#inputDate').val(moment(values.date).format('YYYY-MM-DD'));
-        $('#inputMinutes').attr('placeholder', values.minutes).val('30');
+        $('#inputMinute').attr('placeholder', values.minute).val(values.minute + 1);
         $('#inputDistance').attr('placeholder', values.distance).val('').focus();
         $('#inputCalories').attr('placeholder', values.calories).val('');
         $('#inputLevel').attr('placeholder', values.level).val('');
@@ -256,33 +285,21 @@
     function setupChart() {
         let context = document.getElementById("workoutChart").getContext('2d');
 
-        let levelOpts = Object.assign(buildOptsData('level'), {type: 'bar', fill: true});
-
-        let minuteAxis = buildOptsAxis('minutes', 'left');
-        minuteAxis = {...minuteAxis, ticks: {...minuteAxis.ticks, min: 10, max: 60}};
-
-        let levelAxis = buildOptsAxis('level', 'right');
-        levelAxis = {...levelAxis, ticks: {...levelAxis.ticks, min: 8, max: 12}};
-
         let config = {
             type: 'bar',
             data: {
                 labels: [],
-                datasets: [buildOptsData('calories'), buildOptsData('distance'), buildOptsData('minutes'), levelOpts],
+                datasets: [buildOptsData('calories'), buildOptsData('distance')],
             },
             options: {
                 scales: {
                     xAxes: [{
-                        type: 'time',
                         distribution: 'series',
                         ticks: {
                             source: 'labels'
-                        },
-                        time: {
-                            unit: 'day'
                         }
                     }],
-                    yAxes: [buildOptsAxis('calories', 'left'), buildOptsAxis('distance', 'right'), minuteAxis, levelAxis]
+                    yAxes: [buildOptsAxis('calories', 'left'), buildOptsAxis('distance', 'right')]
                 }
             }
         };
@@ -295,27 +312,36 @@
         if (chart_obj === undefined) {
             return;
         }
+        persistedData = persistedData === undefined ? getPersistedData(storageKeys.per_minute) : persistedData;
 
-        persistedData = persistedData === undefined ? getPersistedData(storageKeys.per_day) : persistedData;
+        let datasetsOrder = {calories: 0, distance: 1}
 
-        let datasetsOrder = {calories: 0, distance: 1, minutes: 2, level: 3}
+        persistedData.splice(0, 0, {minute: 0, calories: 0, distance: 0})
 
-        chart_obj.config.data.labels = persistedData.map((item) => moment(new Date(item.date)));
-        chart_obj.config.data.datasets[datasetsOrder.minutes].data = persistedData.map((item) => item.minutes);
-        chart_obj.config.data.datasets[datasetsOrder.calories].data = persistedData.map((item) => item.calories);
-        chart_obj.config.data.datasets[datasetsOrder.distance].data = persistedData.map((item) => item.distance);
-        chart_obj.config.data.datasets[datasetsOrder.level].data = persistedData.map((item) => item.level);
+        let minute = [],
+            calories = [],
+            distance = [];
+
+        for (let idx = 0; idx < persistedData.length - 1; idx++) {
+            minute.push(persistedData[idx + 1].minute - persistedData[idx].minute);
+            calories.push(persistedData[idx + 1].calories - persistedData[idx].calories);
+            distance.push(parseInt((persistedData[idx + 1].distance - persistedData[idx].distance) * 1000));
+            // if(idx >= persistedData.length-1) break;
+        }
+
+        chart_obj.config.data.labels = minute;
+        chart_obj.config.data.datasets[datasetsOrder.calories].data = calories;
+        chart_obj.config.data.datasets[datasetsOrder.distance].data = distance;
 
         chart_obj.update();
     }
-
 
     // Example starter JavaScript for disabling form submissions if there are invalid fields
     (function () {
         'use strict';
 
         $("body").on(eventKeys.dataUpdated, function (event, key, persistedData) {
-            if (key === storageKeys.per_day) {
+            if (key === storageKeys.per_minute) {
                 updateChart(persistedData);
                 updateInputLog(persistedData);
             }
@@ -323,28 +349,30 @@
 
         window.addEventListener('load', function () {
 
-
             $("#inputBtn").click(onUserSubmitForm);
 
             $("#showdata").click(displayPersistedData);
 
             $("#postdata").click(uploadPersistedData);
 
+            $("#commitdata").click(commitPersistedData);
+
             $("#removedata").click(function (event) {
                 event.preventDefault();
-                setPersistedData([], storageKeys.per_day);
+                setPersistedData([], storageKeys.per_minute);
                 return false;
             });
 
             $("#exampledata").click(function (event) {
                 event.preventDefault();
-                let demoData = '[{"date": "2018-06-29T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.560116+00:00", "id": 1, "calories": 200, "cooldown": true, "level": 9, "distance": 6.3, "updated_at": "2018-08-01T17:29:32.560121+00:00", "minutes": 30}, {"date": "2018-06-30T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.562055+00:00", "id": 2, "calories": 195, "cooldown": true, "level": 9, "distance": 5.2, "updated_at": "2018-08-01T17:29:32.562058+00:00", "minutes": 30}, {"date": "2018-07-01T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.562916+00:00", "id": 3, "calories": 239, "cooldown": true, "level": 9, "distance": 7.4, "updated_at": "2018-08-01T17:29:32.562919+00:00", "minutes": 35}, {"date": "2018-07-02T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.563757+00:00", "id": 4, "calories": 232, "cooldown": false, "level": 9, "distance": 7.26, "updated_at": "2018-08-01T17:29:32.563761+00:00", "minutes": 31}, {"date": "2018-07-20T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.564615+00:00", "id": 5, "calories": 230, "cooldown": true, "level": 9, "distance": 7.5, "updated_at": "2018-08-01T17:29:32.564618+00:00", "minutes": 30}, {"date": "2018-07-21T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.565471+00:00", "id": 6, "calories": 241, "cooldown": false, "level": 9, "distance": 7.69, "updated_at": "2018-08-01T17:29:32.565474+00:00", "minutes": 31}, {"date": "2018-07-22T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.566314+00:00", "id": 7, "calories": 239, "cooldown": false, "level": 10, "distance": 7.4, "updated_at": "2018-08-01T17:29:32.566317+00:00", "minutes": 30}, {"date": "2018-07-23T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.567128+00:00", "id": 8, "calories": 230, "cooldown": false, "level": 10, "distance": 6.66, "updated_at": "2018-08-01T17:29:32.567131+00:00", "minutes": 30}, {"date": "2018-07-24T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.567942+00:00", "id": 9, "calories": 235, "cooldown": false, "level": 10, "distance": 7.27, "updated_at": "2018-08-01T17:29:32.567945+00:00", "minutes": 30}, {"date": "2018-07-27T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.568896+00:00", "id": 10, "calories": 235, "cooldown": false, "level": 10, "distance": 7.11, "updated_at": "2018-08-01T17:29:32.568900+00:00", "minutes": 30}, {"date": "2018-07-28T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.569791+00:00", "id": 11, "calories": 260, "cooldown": false, "level": 11, "distance": 8.0, "updated_at": "2018-08-01T17:29:32.569794+00:00", "minutes": 30}, {"date": "2018-07-31T04:00:00+00:00", "created_at": "2018-08-01T17:29:32.570679+00:00", "id": 12, "calories": 249, "cooldown": false, "level": 11, "distance": 7.24, "updated_at": "2018-08-01T17:29:32.570682+00:00", "minutes": 30}, {"date": "2018-08-01T04:00:00+00:00", "created_at": "2018-08-03T12:14:32.026007+00:00", "id": 13, "calories": 257, "cooldown": true, "level": 11, "distance": 7.68, "updated_at": "2018-08-03T12:14:32.026013+00:00", "minutes": 30}, {"date": "2018-08-02T04:00:00+00:00", "created_at": "2018-08-03T12:14:59.527727+00:00", "id": 14, "calories": 233, "cooldown": false, "level": 10, "distance": 7.03, "updated_at": "2018-08-03T12:14:59.527734+00:00", "minutes": 30}, {"date": "2018-08-03T04:00:00+00:00", "created_at": "2018-08-03T22:57:07.525518+00:00", "id": 15, "calories": 252, "cooldown": false, "level": 11, "distance": 7.48, "updated_at": "2018-08-03T22:57:07.525525+00:00", "minutes": 30}]';
-                setPersistedData(JSON.parse(demoData), storageKeys.per_day);
+                let demoData = '[{"level": 11, "date": "2018-08-04T18:01:00+00:00", "minute": 1, "calories": 6, "distance": 0.17}, {"level": 11, "date": "2018-08-04T18:02:00+00:00", "minute": 2, "calories": 13, "distance": 0.36}, {"level": 11, "date": "2018-08-04T18:03:00+00:00", "minute": 3, "calories": 21, "distance": 0.56}, {"level": 11, "date": "2018-08-04T18:04:00+00:00", "minute": 4, "calories": 27, "distance": 0.74}, {"level": 11, "date": "2018-08-04T18:05:00+00:00", "minute": 5, "calories": 35, "distance": 0.94}, {"level": 11, "date": "2018-08-04T18:06:00+00:00", "minute": 6, "calories": 43, "distance": 1.15}, {"level": 11, "date": "2018-08-04T18:07:00+00:00", "minute": 7, "calories": 51, "distance": 1.35}, {"level": 11, "date": "2018-08-04T18:08:00+00:00", "minute": 8, "calories": 59, "distance": 1.55}, {"level": 11, "date": "2018-08-04T18:09:00+00:00", "minute": 9, "calories": 65, "distance": 1.73}, {"level": 11, "date": "2018-08-04T18:10:00+00:00", "minute": 10, "calories": 74, "distance": 1.94}, {"level": 11, "date": "2018-08-04T18:11:00+00:00", "minute": 11, "calories": 80, "distance": 2.13}, {"level": 11, "date": "2018-08-04T18:12:00+00:00", "minute": 12, "calories": 89, "distance": 2.35}, {"level": 11, "date": "2018-08-04T18:13:00+00:00", "minute": 13, "calories": 96, "distance": 2.54}, {"level": 11, "date": "2018-08-04T18:14:00+00:00", "minute": 14, "calories": 106, "distance": 2.76}, {"level": 11, "date": "2018-08-04T18:15:00+00:00", "minute": 15, "calories": 112, "distance": 2.95}, {"level": 11, "date": "2018-08-04T18:16:00+00:00", "minute": 16, "calories": 123, "distance": 3.19}, {"level": 11, "date": "2018-08-04T18:17:00+00:00", "minute": 17, "calories": 130, "distance": 3.38}, {"level": 11, "date": "2018-08-04T18:18:00+00:00", "minute": 18, "calories": 138, "distance": 3.59}, {"level": 11, "date": "2018-08-04T18:19:00+00:00", "minute": 19, "calories": 145, "distance": 3.77}, {"level": 11, "date": "2018-08-04T18:20:00+00:00", "minute": 20, "calories": 154, "distance": 3.99}, {"level": 11, "date": "2018-08-04T18:22:00+00:00", "minute": 22, "calories": 170, "distance": 4.41}, {"level": 11, "date": "2018-08-04T18:23:00+00:00", "minute": 23, "calories": 177, "distance": 4.6}, {"level": 11, "date": "2018-08-04T18:24:00+00:00", "minute": 24, "calories": 188, "distance": 4.84}, {"level": 11, "date": "2018-08-04T18:25:00+00:00", "minute": 25, "calories": 194, "distance": 5.02}, {"level": 11, "date": "2018-08-04T18:26:00+00:00", "minute": 26, "calories": 203, "distance": 5.24}, {"level": 11, "date": "2018-08-04T18:27:00+00:00", "minute": 27, "calories": 209, "distance": 5.42}, {"level": 11, "date": "2018-08-04T18:28:00+00:00", "minute": 28, "calories": 216, "distance": 5.61}, {"level": 11, "date": "2018-08-04T18:29:00+00:00", "minute": 29, "calories": 223, "distance": 5.8}, {"level": 11, "date": "2018-08-04T18:30:00+00:00", "minute": 30, "calories": 229, "distance": 5.98}]';
+                setPersistedData(JSON.parse(demoData), storageKeys.per_minute);
                 return false;
             });
 
             setupChart();
             updateInputLog();
+            resetUserSubmitForm();
 
         }, false);
     })();
