@@ -62,7 +62,7 @@
     </div>
 </div>
 
-<nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-dark">
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark">
     <a class="navbar-brand" href="#">Page</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
             aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -137,10 +137,10 @@
 <script>
     let chart_obj;
 
-    function updateInputLog(persistedData) {
-        persistedData = persistedData === undefined ? getPersistedData(storageKeys.per_minute) : persistedData;
-        let listItemLast = 0;
-        let template = $('#templateListItem').html();
+    function updateInputLog() {
+        let persistedData = getPersistedData(storageKeys.per_minute),
+            listItemLast = 0,
+            template = $('#templateListItem').html();
 
         $('#inputCount').html(persistedData.length);
         $('#inputListItems').html('');
@@ -263,8 +263,6 @@
         persistedData.push(values);
         setPersistedData(persistedData, storageKeys.per_minute);
 
-        resetUserSubmitForm();
-
         return false;
     }
 
@@ -308,15 +306,16 @@
         updateChart();
     }
 
-    function updateChart(persistedData) {
+    function updateChart() {
         if (chart_obj === undefined) {
             return;
         }
-        persistedData = persistedData === undefined ? getPersistedData(storageKeys.per_minute) : persistedData;
+
+        let persistedData = getPersistedData(storageKeys.per_minute);
 
         let datasetsOrder = {calories: 0, distance: 1}
 
-        persistedData.splice(0, 0, {minute: 0, calories: 0, distance: 0})
+        persistedData.splice(0, 0, {minute: 999, calories: 0, distance: 0})
 
         let minute = [],
             calories = [],
@@ -342,8 +341,9 @@
 
         $("body").on(eventKeys.dataUpdated, function (event, key, persistedData) {
             if (key === storageKeys.per_minute) {
-                updateChart(persistedData);
-                updateInputLog(persistedData);
+                updateChart();
+                updateInputLog();
+                resetUserSubmitForm();
             }
         });
 
